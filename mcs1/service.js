@@ -1,7 +1,7 @@
 const broker = require('./broker');
 const dbase = require('./dbase');
 
-const parse = async (xml, _id) => {
+const parse = (xml, _id) => {
 	let collectionName, collectionCode
 	let sectionName, sectionCode
 	let subSectionName, subSectionCode
@@ -61,7 +61,7 @@ const parse = async (xml, _id) => {
 			push()
 		}
 	});
-	await broker.sendDocMeta(_id, counter);
+	broker.sendDocMeta(_id, counter);
 };
 
 module.exports = {
@@ -73,8 +73,7 @@ module.exports = {
 		const _id = await dbase.createNewDoc();
 		ctx.res.statusCode = 200;
 		ctx.res.end(JSON.stringify(_id));
-		broker.setDocQueue(`doc.${_id}`)
-		const xmlCollection = ctx.request.xmlBody.base.ResourcesDirectory[0].ResourceCategory[0].Section;
-		parse(xmlCollection, _id);
+		await broker.setDocQueue(_id);
+		parse(ctx.request.xmlBody.base.ResourcesDirectory[0].ResourceCategory[0].Section, _id);
 	},
 }

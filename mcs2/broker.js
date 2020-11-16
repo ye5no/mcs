@@ -23,7 +23,7 @@ class Broker {
 
 			await this.channel.assertQueue('docs', { durable: true });
 			await this.channel.assertQueue('status', { durable: true });
-			this.channel.prefetch(1);
+			await this.channel.prefetch(1);
 			this.channel.consume('docs', this.initDoc.bind(this), { noAck: false });
 		} catch (e) {
 			console.log(e);
@@ -41,8 +41,8 @@ class Broker {
 			this.batchNorms = [];
 			this.stopMsg = msg;
 
-			this.channel.assertQueue(`doc.${_id}`, { durable: true });
-			this.channel.prefetch(this.MAX_UPLOAD);
+			await this.channel.assertQueue(`doc.${_id}`, { durable: true });
+			await this.channel.prefetch(this.MAX_UPLOAD);
 			this.channel.consume(`doc.${_id}`, this.readDoc.bind(this), { noAck: false, consumerTag: _id });
 		} catch (err) {
 			this.channel.nack(msg)
@@ -80,13 +80,13 @@ class Broker {
 	async closeQueue() {
 		console.log(`=================${this.processDoc} finished=======================`);
 		this.channel.sendToQueue(`status`, Buffer.from(this.processDoc));
-		this.channel.cancel(this.processDoc);
-		this.channel.deleteQueue(`doc.${this.processDoc}`);
+		await this.channel.cancel(this.processDoc);
+		await this.channel.deleteQueue(`doc.${this.processDoc}`);
 		this.processDoc = null;
 		this.estimated = 0;
 		this.received = 0;
 		this.batchNorms = [];
-		this.channel.prefetch(1);
+		await this.channel.prefetch(1);
 		this.channel.ack(this.stopMsg);
 	}
 

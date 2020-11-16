@@ -23,8 +23,8 @@ class Broker {
 		}
 	}
 
-	setDocQueue(name) {
-		this.channel.assertQueue(name, { durable: true });
+	setDocQueue(_id) {
+		this.channel.assertQueue(`doc.${_id}`, { durable: true });
 	}
 
 	sendDocInstance(_id, data) {
@@ -35,11 +35,11 @@ class Broker {
 		this.channel.sendToQueue(`docs`, Buffer.from(JSON.stringify({_id, counter})))
 	}
 
-	async finalize(msg) {
+	finalize(msg) {
 		try {
 			const _id = msg.content.toString();
 			console.log(`${_id} FINISHED`);
-			await dbase.finishDoc(_id);
+			dbase.finishDoc(_id);
 			this.channel.ack(msg);
 		} catch (err) {
 			console.log(err);
